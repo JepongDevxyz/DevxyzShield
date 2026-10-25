@@ -23,6 +23,11 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Make gradlew executable
+        # API text pushes preserve no file modes, so gradlew arrives non-executable;
+        # without this, ./gradlew fails with Permission denied (Run #1, 16s).
+        run: chmod +x gradlew
+
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
