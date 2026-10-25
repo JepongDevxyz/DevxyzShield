@@ -20,12 +20,20 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        # android-actions/setup-android@v3 is BROKEN on current runners: its
+        # sdkmanager --licenses step crashes on cmdline-tools 16.0 with
+        # "Failed to find package 'tools'" (Runs #1 and #2, SDK step only).
+        # The ubuntu runner already has a preinstalled SDK; install only the
+        # components this app needs (SDK 36 only — android-37 does not exist).
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
 
       - name: Make gradlew executable
         # API text pushes preserve no file modes, so gradlew arrives non-executable;
-        # without this, ./gradlew fails with Permission denied (Run #1, 16s).
+        # keep this so ./gradlew does not fail with Permission denied once
+        # the SDK step passes.
         run: chmod +x gradlew
 
       - name: Build debug APK
